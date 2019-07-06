@@ -129,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--resize-out-ratio', type=float, default=4.0,
                         help='if provided, resize heatmaps before they are post-processed. default=1.0')
 
-    parser.add_argument('--model', type=str, default='mobilenet_v2_small', help='cmu / mobilenet_thin / mobilenet_v2_large / mobilenet_v2_small')
+    parser.add_argument('--model', type=str, default='mobilenet_thin', help='cmu / mobilenet_thin / mobilenet_v2_large / mobilenet_v2_small')
     parser.add_argument('--show-process', type=bool, default=False,
                         help='for debug purpose, if enabled, speed for inference is dropped.')
     parser.add_argument('-d', '--device', default='normal_cam') # normal_cam /jetson_nano_raspi_cam
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     elif args.device == 'jetson_nano_raspi_cam':
         GST_STR = 'nvarguscamerasrc \
             ! video/x-raw(memory:NVMM), width=3280, height=2464, format=(string)NV12, framerate=(fraction)21/1 \
-            ! nvvidconv ! video/x-raw, width=(int)640, height=(int)480, format=(string)BGRx \
+            ! nvvidconv ! video/x-raw, width=(int)1280, height=(int)960, format=(string)BGRx \
             ! videoconvert \
             ! appsink'
         cam = cv2.VideoCapture(GST_STR, cv2.CAP_GSTREAMER) # Raspi cam

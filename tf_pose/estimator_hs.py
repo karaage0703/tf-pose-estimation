@@ -407,11 +407,11 @@ class TfPoseEstimator:
                 centers[i] = center
                 # cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
                 if i == 0:
-	                cv2.circle(npimg_target, center, 80, [255,0,0], thickness=-1, lineType=8, shift=0)
-	                # if i == 4 or i==7:
-	                #     cv2.circle(npimg_target, center, 60, [255,0,0], thickness=-1, lineType=8, shift=0)
-	                # if i == 10 or i==13:
-	                #     cv2.circle(npimg_target, center, 60, [255,0,0], thickness=-1, lineType=8, shift=0)
+                    cv2.circle(npimg_target, center, 80, [255,0,0], thickness=-1, lineType=8, shift=0)
+#                if i == 4 or i==7:
+#                    cv2.circle(npimg_target, center, 6, [255,0,0], thickness=-1, lineType=8, shift=0)
+#                if i == 10 or i==13:
+#                    cv2.circle(npimg_target, center, 6, [255,0,0], thickness=-1, lineType=8, shift=0)
 
 	    # Memo body parts name
 	    # Nose = 0
@@ -441,7 +441,7 @@ class TfPoseEstimator:
 
                 # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                 # cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
-                cv2.line(npimg_target, centers[pair[0]], centers[pair[1]], [255,0,0], 60)
+                cv2.line(npimg_target, centers[pair[0]], centers[pair[1]], [255,0,0], 50)
 
         # return npimg
         return npimg_target
