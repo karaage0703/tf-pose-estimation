@@ -1,3 +1,93 @@
+# Jetson Nano
+## Pose Estimation with Jetson Nano
+
+![open_pose_jetson_nano](/images_jetson/openpose.gif)
+
+### Hardware
+- Jetson nano
+- Raspi Cam V2 or USB Web Cam
+
+### Setup
+Execute following commands for installing TensorFlow and tf-pose-estimation:
+
+```sh
+$ git clone https://github.com/karaage0703/jetson-nano-tools
+$ cd jetson-nano-tools
+$ ./install-tensorflow.sh
+$ ./install-open-pose.sh
+```
+### How to use
+With Raspi Cam V2
+
+```
+$ cd ~/tf-pose-estimation
+$ python3 run_jetson_nano.py --model=mobilenet_v2_small --resize=320x176
+```
+
+With USB Web Cam
+
+```sh
+$ cd ~/tf-pose-estimation
+$ python3 run_webcam.py --model=mobilenet_v2_small --resize=320x176 --camera=1
+```
+
+## Skeleton Sequencer with Jetson Nano
+
+![skeleton_sequencer_02](/images_jetson/ss_02.jpg)
+
+![skeleton_sequencer_01](/images_jetson/ss_01.jpg)
+
+### Hardware
+- Jetson nano
+- Raspi Cam V2
+- Pocket Miku (as MIDI Device)
+
+### Setup
+For setup Sekeleton Sequencer needs 2 steps.
+
+1. Kernel build
+1. Install pygame
+
+#### Kernel Build for MIDI
+Execute following commands for kernel build for MIDI:
+
+```sh
+$ cd && mkdir kernel && cd kernel
+$ wget https://developer.nvidia.com/embedded/dlc/l4t-sources-32-1-jetson-nano -O l4t-sources-32-1-jetson-nano.tar.gz
+$ tar xvf l4t-sources-32-1-jetson-nano.tar.gz
+$ cd public_sources
+$ tar xvf kernel_src.tbz2
+$ cd kernel/kernel-4.9
+$ wget -O .config https://raw.githubusercontent.com/karaage0703/jetson-nano-tools/master/kernel_config/config_midi
+$ make oldconfig
+$ make prepare
+$ make modules_prepare
+$ make -j4 Image && make -j4 modules
+$ sudo make modules_install
+```
+#### Install pygame
+Execute following commands for installing pygame:
+
+```sh
+$ sudo apt-get update
+$ sudo apt-get install libsdl-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
+$ sudo apt-get install libsmpeg-dev libportmidi-dev libavformat-dev libswscale-dev
+$ sudo apt-get install libfreetype6-dev
+$ sudo apt-get install libportmidi-dev
+$ sudo apt-get install python3-pip
+$ pip3 install pygame
+```
+
+
+
+### How to use
+Execute following commands:
+
+```sh
+$ cd ~/tf-pose-estimation
+$ python3 skeleton_sequencer -d=jetson_nano_raspi_cam
+```
+
 # tf-pose-estimation
 
 'Openpose', human pose estimation algorithm, have been implemented using Tensorflow. It also provides several variants that have some changes to the network structure for **real-time processing on the CPU or low-power embedded devices.**
