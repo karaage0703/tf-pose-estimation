@@ -33,9 +33,9 @@ $ python3 run_webcam.py --model=mobilenet_v2_small --resize=320x176 --camera=1
 
 ## Skeleton Sequencer with Jetson Nano
 
-![skeleton_sequencer_02](/images_jetson/skeleton_sequencer_02.jpg)
+![skeleton_sequencer_02](/images_jetson/ss_02.jpg)
 
-![skeleton_sequencer_01](/images_jetson/skeleton_sequencer_01.jpg)
+![skeleton_sequencer_01](/images_jetson/ss_01.jpg)
 
 ### Hardware
 - Jetson nano
