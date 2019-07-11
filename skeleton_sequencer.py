@@ -167,6 +167,7 @@ if __name__ == '__main__':
     start_time = time.time()
     while True:
         ret_val, image = cam.read()
+        image = cv2.flip(image, 1)
 
         logger.debug('image process+')
         humans = e.inference(image, resize_to_default=(w > 0 and h > 0), upsample_size=args.resize_out_ratio)
