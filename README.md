@@ -85,7 +85,7 @@ Execute following commands:
 
 ```sh
 $ cd ~/tf-pose-estimation
-$ python3 skeleton_sequencer -d=jetson_nano_raspi_cam
+$ python3 skeleton_sequencer.py -d=jetson_nano_raspi_cam
 ```
 
 # tf-pose-estimation
