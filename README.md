@@ -14,7 +14,7 @@ Execute following commands for installing TensorFlow and tf-pose-estimation:
 $ git clone https://github.com/karaage0703/jetson-nano-tools
 $ cd jetson-nano-tools
 $ ./install-tensorflow.sh
-$ ./install-open-pose.sh
+$ ./install-pose-estimation.sh
 ```
 ### How to use
 With Raspi Cam V2
@@ -85,7 +85,7 @@ Execute following commands:
 
 ```sh
 $ cd ~/tf-pose-estimation
-$ python3 skeleton_sequencer -d=jetson_nano_raspi_cam
+$ python3 skeleton_sequencer.py -d=jetson_nano_raspi_cam
 ```
 
 # tf-pose-estimation
