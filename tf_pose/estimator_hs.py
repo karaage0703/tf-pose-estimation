@@ -28,7 +28,6 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
-
 def _round(v):
     return int(round(v))
 
@@ -301,6 +300,9 @@ class PoseEstimator:
 
 class TfPoseEstimator:
     # TODO : multi-scale
+    HUMAN_COLOR_0 = [255, 0, 0]
+    HUMAN_COLOR_1 = [0, 255, 0]
+    HUMAN_COLOR_2 = [0, 0, 255]
 
     def __init__(self, graph_path, target_size=(320, 240), tf_config=None):
         self.target_size = target_size
@@ -397,7 +399,17 @@ class TfPoseEstimator:
         # npimg = np.zeros((image_h, image_w, 3), np.uint8)
 
         centers = {}
+        human_numb = 0
         for human in humans:
+            # set human color
+            if human_numb % 3 == 0:
+                human_color = TfPoseEstimator.HUMAN_COLOR_0
+            if human_numb % 3 == 1:
+                human_color = TfPoseEstimator.HUMAN_COLOR_1
+            if human_numb % 3 == 2:
+                human_color = TfPoseEstimator.HUMAN_COLOR_2
+            human_numb += 1
+
             # draw point
             for i in range(common.CocoPart.Background.value):
                 if i not in human.body_parts.keys():
@@ -410,7 +422,7 @@ class TfPoseEstimator:
                     cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
                 if mode == 'sequencer':
                     if i == 0:
-                        cv2.circle(npimg, center, 80, [255,0,0], thickness=-1, lineType=8, shift=0)
+                        cv2.circle(npimg, center, 80, human_color, thickness=-1, lineType=8, shift=0)
     #                if i == 4 or i==7:
     #                    cv2.circle(npimg_target, center, 6, [255,0,0], thickness=-1, lineType=8, shift=0)
     #                if i == 10 or i==13:
@@ -446,7 +458,7 @@ class TfPoseEstimator:
                     # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                     cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                 if mode == 'sequencer':
-                    cv2.line(npimg, centers[pair[0]], centers[pair[1]], [255,0,0], 50)
+                    cv2.line(npimg, centers[pair[0]], centers[pair[1]], human_color, 50)
 
         return npimg
 

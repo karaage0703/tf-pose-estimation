@@ -33,10 +33,11 @@ d_circle = 30
 dot_line = 0
 
 # midi setting
-instrument = 1 # 0 vocaloid / 1 piano / 9 drum
 volume = 127
 
-note_list = []
+note_list_0 = []
+note_list_1 = []
+note_list_2 = []
 
 play_mode = 'sequencer'
 
@@ -70,7 +71,9 @@ def get_pentatonic_scale(note):
 def human_sequencer(src):
     global start_time
     global dot_line
-    global note_list
+    global note_list_0
+    global note_list_1
+    global note_list_2
 
     image_h, image_w = src.shape[:2]
 
@@ -79,7 +82,7 @@ def human_sequencer(src):
 
     # create blank image
     npimg_target = np.zeros((image_h, image_w, 3), np.uint8)
-    dot_color = [[0 for i in range(h_max)] for j in range(w_max)] 
+    dot_color = [[0 for i in range(h_max)] for j in range(w_max)]
 
     # make dot information from ndarray
     for y in range(0, h_max):
@@ -88,24 +91,43 @@ def human_sequencer(src):
 
     # move dot
     while time.time() - start_time > speed:
-        print(time.time() -start_time)
         start_time += speed
         dot_line += 1
         if dot_line > w_max-1:
             dot_line = 0
 
         # sound off
-        for note in note_list:
-            midiOutput.note_off(note,volume)
+        for note in note_list_0:
+            midiOutput.note_off(note, volume, 2)
+        for note in note_list_1:
+            midiOutput.note_off(note, volume, 3)
+        for note in note_list_2:
+            midiOutput.note_off(note, volume, 4)
 
         # sound on
-        note_list = []
-        for y in range(0, h_max):
-            if dot_color[dot_line][y][0] == 255:
-                note_list.append(get_pentatonic_scale(y))
+        note_list_0 = []
+        note_list_1 = []
+        note_list_2 = []
 
-        for note in note_list:
-            midiOutput.note_on(note,volume,instrument)
+        for y in range(0, h_max):
+            human_check_0 = dot_color[dot_line][y].tolist() == TfPoseEstimator.HUMAN_COLOR_0
+            human_check_1 = dot_color[dot_line][y].tolist() == TfPoseEstimator.HUMAN_COLOR_1
+            human_check_2 = dot_color[dot_line][y].tolist() == TfPoseEstimator.HUMAN_COLOR_2
+
+            if human_check_0:
+                note_list_0.append(get_pentatonic_scale(y))
+            if human_check_1:
+                note_list_1.append(get_pentatonic_scale(y))
+            if human_check_2:
+                note_list_2.append(get_pentatonic_scale(y))
+
+
+        for note in note_list_0:
+            midiOutput.note_on(note, volume, 2)
+        for note in note_list_1:
+            midiOutput.note_on(note, volume, 3)
+        for note in note_list_2:
+            midiOutput.note_on(note, volume, 4)
 
 
     # draw dot
@@ -113,7 +135,11 @@ def human_sequencer(src):
         for x in range(0, w_max):
             center = (int(x * d_circle + d_circle * 0.5), int(y * d_circle + d_circle * 0.5))
             if x == dot_line:
-                if dot_color[x][y][0] == 255:
+                human_check_0 = dot_color[dot_line][y].tolist() == TfPoseEstimator.HUMAN_COLOR_0
+                human_check_1 = dot_color[dot_line][y].tolist() == TfPoseEstimator.HUMAN_COLOR_1
+                human_check_2 = dot_color[dot_line][y].tolist() == TfPoseEstimator.HUMAN_COLOR_2
+
+                if human_check_0 or human_check_1 or human_check_2:
                     cv2.circle(npimg_target, center, int(d_circle/2) , [255-(int)(dot_color[x][y][0]),255-(int)(dot_color[x][y][1]),255-(int)(dot_color[x][y][2])] , thickness=-1, lineType=8, shift=0)
                 else:
                     cv2.circle(npimg_target, center, int(d_circle/2) , [255,255,255] , thickness=-1, lineType=8, shift=0)
@@ -161,10 +187,12 @@ if __name__ == '__main__':
     for i in range(pygame.midi.get_count()):
         interf, name, input_dev, output_dev, opened = pygame.midi.get_device_info(i)
         if output_dev and b'NSX-39 ' in name:
-            print(i)
+            print('midi id=' + str(i))
             midiOutput = pygame.midi.Output(i)
 
-    # midiOutput.set_instrument(instrument)
+    midiOutput.set_instrument(1, 2)
+    midiOutput.set_instrument(1, 3)
+    midiOutput.set_instrument(1, 4)
 
     start_time = time.time()
     while True:
@@ -193,9 +221,28 @@ if __name__ == '__main__':
             play_mode = 'sequencer'
         if key == ord('m') or key == ord('M'):
             play_mode = 'pose'
+        if key == ord('1'):
+            midiOutput.set_instrument(1, 2)
+            midiOutput.set_instrument(1, 3)
+            midiOutput.set_instrument(1, 4)
+        if key == ord('2'):
+            midiOutput.set_instrument(13, 2)
+            midiOutput.set_instrument(22, 3)
+            midiOutput.set_instrument(33, 4)
+        if key == ord('3'):
+            midiOutput.set_instrument(49, 2)
+            midiOutput.set_instrument(58, 3)
+            midiOutput.set_instrument(73, 4)
 
 
         logger.debug('finished+')
+
+    for note in note_list_0:
+        midiOutput.note_off(note, volume, 2)
+    for note in note_list_1:
+        midiOutput.note_off(note, volume, 3)
+    for note in note_list_2:
+        midiOutput.note_off(note, volume, 4)
 
     cv2.destroyAllWindows()
     midiOutput.close()
