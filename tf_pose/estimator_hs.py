@@ -388,12 +388,13 @@ class TfPoseEstimator:
         return npimg_q
 
     @staticmethod
-    def draw_humans(npimg, humans, imgcopy=False):
+    def draw_humans(npimg, humans, imgcopy=False, mode='pose'):
         if imgcopy:
             npimg = np.copy(npimg)
         image_h, image_w = npimg.shape[:2]
-        # create blank image
-        npimg_target = np.zeros((image_h, image_w, 3), np.uint8)
+
+        # black background mode
+        # npimg = np.zeros((image_h, image_w, 3), np.uint8)
 
         centers = {}
         for human in humans:
@@ -405,13 +406,15 @@ class TfPoseEstimator:
                 body_part = human.body_parts[i]
                 center = (int(body_part.x * image_w + 0.5), int(body_part.y * image_h + 0.5))
                 centers[i] = center
-                # cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
-                if i == 0:
-                    cv2.circle(npimg_target, center, 80, [255,0,0], thickness=-1, lineType=8, shift=0)
-#                if i == 4 or i==7:
-#                    cv2.circle(npimg_target, center, 6, [255,0,0], thickness=-1, lineType=8, shift=0)
-#                if i == 10 or i==13:
-#                    cv2.circle(npimg_target, center, 6, [255,0,0], thickness=-1, lineType=8, shift=0)
+                if mode == 'pose':
+                    cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
+                if mode == 'sequencer':
+                    if i == 0:
+                        cv2.circle(npimg, center, 80, [255,0,0], thickness=-1, lineType=8, shift=0)
+    #                if i == 4 or i==7:
+    #                    cv2.circle(npimg_target, center, 6, [255,0,0], thickness=-1, lineType=8, shift=0)
+    #                if i == 10 or i==13:
+    #                    cv2.circle(npimg_target, center, 6, [255,0,0], thickness=-1, lineType=8, shift=0)
 
 	    # Memo body parts name
 	    # Nose = 0
@@ -439,12 +442,13 @@ class TfPoseEstimator:
                 if pair[0] not in human.body_parts.keys() or pair[1] not in human.body_parts.keys():
                     continue
 
-                # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
-                # cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
-                cv2.line(npimg_target, centers[pair[0]], centers[pair[1]], [255,0,0], 50)
+                if mode == 'pose':
+                    # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
+                    cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
+                if mode == 'sequencer':
+                    cv2.line(npimg, centers[pair[0]], centers[pair[1]], [255,0,0], 50)
 
-        # return npimg
-        return npimg_target
+        return npimg
 
     def _get_scaled_img(self, npimg, scale):
         get_base_scale = lambda s, w, h: max(self.target_size[0] / float(h), self.target_size[1] / float(w)) * s

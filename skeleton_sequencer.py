@@ -38,6 +38,8 @@ volume = 127
 
 note_list = []
 
+play_mode = 'sequencer'
+
 def get_pentatonic_scale(note):
     # C
     if note%5 == 0:
@@ -173,8 +175,9 @@ if __name__ == '__main__':
         humans = e.inference(image, resize_to_default=(w > 0 and h > 0), upsample_size=args.resize_out_ratio)
 
         logger.debug('postprocess+')
-        image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
-        image = human_sequencer(image)
+        image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False, mode=play_mode)
+        if play_mode == 'sequencer':
+            image = human_sequencer(image)
 
         logger.debug('show+')
         cv2.putText(image,
@@ -183,8 +186,15 @@ if __name__ == '__main__':
                     (0, 255, 0), 2)
         cv2.imshow('Human Sequencer', image)
         fps_time = time.time()
-        if cv2.waitKey(1) == 27: # ESC key
+        key = cv2.waitKey(1)
+        if key == 27: # ESC key
             break
+        if key == ord('s') or key == ord('S'):
+            play_mode = 'sequencer'
+        if key == ord('m') or key == ord('M'):
+            play_mode = 'pose'
+
+
         logger.debug('finished+')
 
     cv2.destroyAllWindows()
