@@ -221,19 +221,35 @@ if __name__ == '__main__':
             play_mode = 'sequencer'
         if key == ord('m') or key == ord('M'):
             play_mode = 'pose'
-        if key == ord('1'):
+
+        if key == ord('0'):
             midiOutput.set_instrument(1, 2)
             midiOutput.set_instrument(1, 3)
             midiOutput.set_instrument(1, 4)
-        if key == ord('2'):
+            TfPoseEstimator.HUMAN_COLOR_0 = [255, 0, 0]
+            TfPoseEstimator.HUMAN_COLOR_1 = [0, 255 , 0]
+            TfPoseEstimator.HUMAN_COLOR_2 = [0, 0, 255]
+        if key == ord('1'):
             midiOutput.set_instrument(13, 2)
             midiOutput.set_instrument(22, 3)
             midiOutput.set_instrument(33, 4)
+            TfPoseEstimator.HUMAN_COLOR_0 = [128, 128, 128]
+            TfPoseEstimator.HUMAN_COLOR_1 = [128, 128 , 0]
+            TfPoseEstimator.HUMAN_COLOR_2 = [0, 128, 0]
+        if key == ord('2'):
+            midiOutput.set_instrument(49, 2)
+            midiOutput.set_instrument(58, 3)
+            midiOutput.set_instrument(73, 4)
+            TfPoseEstimator.HUMAN_COLOR_0 = [255, 0, 255]
+            TfPoseEstimator.HUMAN_COLOR_1 = [0, 128 , 128]
+            TfPoseEstimator.HUMAN_COLOR_2 = [128, 0, 128]
         if key == ord('3'):
             midiOutput.set_instrument(49, 2)
             midiOutput.set_instrument(58, 3)
             midiOutput.set_instrument(73, 4)
-
+            TfPoseEstimator.HUMAN_COLOR_0 = [0, 0, 128]
+            TfPoseEstimator.HUMAN_COLOR_1 = [255, 255 , 0]
+            TfPoseEstimator.HUMAN_COLOR_2 = [0, 0, 0]
 
         logger.debug('finished+')
 
