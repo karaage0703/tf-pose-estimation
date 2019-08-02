@@ -213,13 +213,14 @@ if __name__ == '__main__':
         if play_mode == 'sequencer':
             image = skeleton_sequencer(image)
 
-        logger.debug('show+')
-        cv2.putText(image,
+        if play_mode == 'pose':
+            cv2.putText(image,
                     "FPS: %f" % (1.0 / (time.time() - fps_time)),
-                    (10, 10),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                    (10, 20),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                     (0, 255, 0), 2)
 
         cv2.imshow(window_name, image)
+        logger.debug('show+')
 
         fps_time = time.time()
         key = cv2.waitKey(1)
