@@ -68,7 +68,7 @@ def get_pentatonic_scale(note):
 
     return out_note
 
-def human_sequencer(src):
+def skeleton_sequencer(src):
     global start_time
     global dot_line
     global note_list_0
@@ -161,6 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('--show-process', type=bool, default=False,
                         help='for debug purpose, if enabled, speed for inference is dropped.')
     parser.add_argument('-d', '--device', default='normal_cam') # normal_cam /jetson_nano_raspi_cam
+    parser.add_argument('--fullscreen', type=bool, default=False)
     args = parser.parse_args()
 
     logger.debug('initialization %s : %s' % (args.model, get_graph_path(args.model)))
@@ -194,6 +195,11 @@ if __name__ == '__main__':
     midiOutput.set_instrument(1, 3)
     midiOutput.set_instrument(1, 4)
 
+    window_name = 'Skeleton Sequencer'
+    if args.fullscreen:
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
     start_time = time.time()
     while True:
         ret_val, image = cam.read()
@@ -205,14 +211,16 @@ if __name__ == '__main__':
         logger.debug('postprocess+')
         image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False, mode=play_mode)
         if play_mode == 'sequencer':
-            image = human_sequencer(image)
+            image = skeleton_sequencer(image)
 
         logger.debug('show+')
         cv2.putText(image,
                     "FPS: %f" % (1.0 / (time.time() - fps_time)),
                     (10, 10),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                     (0, 255, 0), 2)
-        cv2.imshow('Human Sequencer', image)
+
+        cv2.imshow(window_name, image)
+
         fps_time = time.time()
         key = cv2.waitKey(1)
         if key == 27: # ESC key
@@ -220,6 +228,12 @@ if __name__ == '__main__':
         if key == ord('s') or key == ord('S'):
             play_mode = 'sequencer'
         if key == ord('m') or key == ord('M'):
+            for note in note_list_0:
+                midiOutput.note_off(note, volume, 2)
+            for note in note_list_1:
+                midiOutput.note_off(note, volume, 3)
+            for note in note_list_2:
+                midiOutput.note_off(note, volume, 4)
             play_mode = 'pose'
 
         if key == ord('0'):
