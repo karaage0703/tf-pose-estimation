@@ -8,6 +8,8 @@ import numpy as np
 from tf_pose.estimator import TfPoseEstimator
 from tf_pose.networks import get_graph_path, model_wh
 
+cascade_path = './haarcascade_frontalface_alt.xml'
+
 logger = logging.getLogger('TfPoseEstimator-WebCam')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
@@ -22,6 +24,28 @@ def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
 
 
+def face_detect(image, image_tmp):
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    cascade = cv2.CascadeClassifier(cascade_path)
+    facerect = cascade.detectMultiScale(image_gray, scaleFactor=1.1, minNeighbors=1, minSize=(1, 1))
+
+    if len(facerect) > 0:
+        for rect in facerect:
+            face_img = cv2.imread('./karaage_icon.png', cv2.IMREAD_UNCHANGED)
+            face_img = cv2.resize(face_img, (rect[2], rect[2]))
+            mask = face_img[:,:,3]
+            mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+            mask = mask / 255.0
+            face_img = face_img[:,:,:3]
+
+            image_tmp = image_tmp.astype('float64')
+            image_tmp[rect[1]:rect[1]+rect[2], rect[0]:rect[0]+rect[2]] *= 1 - mask
+            image_tmp[rect[1]:rect[1]+rect[2], rect[0]:rect[0]+rect[2]] += face_img * mask
+
+            image_tmp = image_tmp.astype('uint8')
+
+    return image_tmp
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='tf-pose-estimation realtime webcam')
     parser.add_argument('--camera', type=int, default=0)
@@ -34,9 +58,11 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, default='mobilenet_thin', help='cmu / mobilenet_thin / mobilenet_v2_large / mobilenet_v2_small')
     parser.add_argument('--show-process', type=bool, default=False,
                         help='for debug purpose, if enabled, speed for inference is dropped.')
-    
+
     parser.add_argument('--tensorrt', type=str, default="False",
                         help='for tensorrt process.')
+    parser.add_argument('--mode', type=str, default="pose",
+                        help='pose / anime')
     args = parser.parse_args()
 
     logger.debug('initialization %s : %s' % (args.model, get_graph_path(args.model)))
@@ -53,11 +79,16 @@ if __name__ == '__main__':
     while True:
         ret_val, image = cam.read()
 
+        image_org = image.copy()
+
         logger.debug('image process+')
         humans = e.inference(image, resize_to_default=(w > 0 and h > 0), upsample_size=args.resize_out_ratio)
 
         logger.debug('postprocess+')
-        image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
+        image_tmp = TfPoseEstimator.draw_humans(image, humans, imgcopy=False, mode=args.mode)
+
+        if args.mode == 'anime':
+            image = face_detect(image_org, image_tmp)
 
         logger.debug('show+')
         cv2.putText(image,
