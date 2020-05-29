@@ -324,7 +324,7 @@ class TfPoseEstimator:
                 minimum_segment_size=3,
                 is_dynamic_op=True,
                 maximum_cached_engines=int(1e3),
-                use_calibration=True,
+                # use_calibration=True,
             )
 
         self.graph = tf.get_default_graph()
@@ -411,6 +411,11 @@ class TfPoseEstimator:
         if imgcopy:
             npimg = np.copy(npimg)
         image_h, image_w = npimg.shape[:2]
+
+        # black background
+        if mode == 'anime':
+            npimg = np.zeros((image_h, image_w, 3), np.uint8)
+
         centers = {}
         for human in humans:
             # draw point
@@ -426,10 +431,16 @@ class TfPoseEstimator:
                 if mode == 'pose':
                     cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
                 if mode == 'anime':
-                    if i == 0:
-                        cv2.circle(npimg, center, 80, human_color, thickness=-1, lineType=8, shift=0)
+                    if i == 4 or i == 7: # draw wrist
+                        cv2.circle(npimg, center, 50, human_color, thickness=-1, lineType=8, shift=0)
+                    if i == 10 or i == 13: # draw ankle
+                        cv2.circle(npimg, center, 60, human_color, thickness=-1, lineType=8, shift=0)
 
             # draw line
+            neck_pos = 0
+            rhip_pos = 0
+            lhip_pos = 0
+
             for pair_order, pair in enumerate(common.CocoPairsRender):
                 if pair[0] not in human.body_parts.keys() or pair[1] not in human.body_parts.keys():
                     continue
@@ -438,8 +449,27 @@ class TfPoseEstimator:
                     # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                     cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                 if mode == 'anime':
-                    cv2.line(npimg, centers[pair[0]], centers[pair[1]], human_color, 50)
+                    print(pair_order)
+                    print(pair)
+                    if pair_order < 13: # under neck
+                        cv2.line(npimg, centers[pair[0]], centers[pair[1]], human_color, 50)
+                    if pair_order == 6: # neck and right hip
+                        # store body information
+                        neck_pos = centers[pair[0]]
+                        rhip_pos = centers[pair[1]]
+                    if pair_order == 9: # neck and left hip
+                        # store body information
+                        neck_pos = centers[pair[0]]
+                        lhip_pos = centers[pair[1]]
 
+            # draw body
+            if neck_pos != 0 and rhip_pos != 0 and lhip_pos != 0:
+                body_center_x = (neck_pos[0] + rhip_pos[0] + lhip_pos[0]) / 3
+                body_center_y = (neck_pos[1] + (rhip_pos[1] + lhip_pos[1]) / 2) / 2
+                body_size_x = (lhip_pos[0] - rhip_pos[0]) * 1.5
+                body_size_y = ((rhip_pos[1] + lhip_pos[1]) / 2 - neck_pos[1]) * 1.5
+
+                cv2.ellipse(npimg, ((body_center_x, body_center_y), (body_size_x, body_size_y), 0), human_color, thickness=-1, lineType=8)
 
         return npimg
 
