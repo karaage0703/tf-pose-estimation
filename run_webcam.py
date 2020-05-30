@@ -25,24 +25,36 @@ def str2bool(v):
 
 
 def face_detect(image, image_tmp):
+    # image padding
+    padding_size = int(image.shape[1] / 2)
+    padding_img = cv2.copyMakeBorder(image, padding_size, padding_size , padding_size, padding_size, cv2.BORDER_CONSTANT, value=(0,0,0))
+    image_tmp = cv2.copyMakeBorder(image_tmp, padding_size, padding_size , padding_size, padding_size, cv2.BORDER_CONSTANT, value=(0,0,0))
+    image_tmp = image_tmp.astype('float64')
+
+    # face detect
     image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     cascade = cv2.CascadeClassifier(cascade_path)
     facerect = cascade.detectMultiScale(image_gray, scaleFactor=1.1, minNeighbors=1, minSize=(1, 1))
 
+    # face overlay
     if len(facerect) > 0:
         for rect in facerect:
+            face_size = rect[2] * 2
+            face_pos_adjust = int(rect[2] * 0.5)
             face_img = cv2.imread('./karaage_icon.png', cv2.IMREAD_UNCHANGED)
-            face_img = cv2.resize(face_img, (rect[2], rect[2]))
+            face_img = cv2.resize(face_img, (face_size, face_size))
             mask = face_img[:,:,3]
             mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
             mask = mask / 255.0
             face_img = face_img[:,:,:3]
 
-            image_tmp = image_tmp.astype('float64')
-            image_tmp[rect[1]:rect[1]+rect[2], rect[0]:rect[0]+rect[2]] *= 1 - mask
-            image_tmp[rect[1]:rect[1]+rect[2], rect[0]:rect[0]+rect[2]] += face_img * mask
+            image_tmp[rect[1]+padding_size-face_pos_adjust:rect[1]+face_size+padding_size-face_pos_adjust,
+                      rect[0]+padding_size-face_pos_adjust:rect[0]+face_size+padding_size-face_pos_adjust] *= 1 - mask
+            image_tmp[rect[1]+padding_size-face_pos_adjust:rect[1]+face_size+padding_size-face_pos_adjust,
+                      rect[0]+padding_size-face_pos_adjust:rect[0]+face_size+padding_size-face_pos_adjust] += face_img * mask
 
-            image_tmp = image_tmp.astype('uint8')
+    image_tmp = image_tmp[padding_size:padding_size+image.shape[0], padding_size:padding_size+image.shape[1]]
+    image_tmp = image_tmp.astype('uint8')
 
     return image_tmp
 
@@ -79,8 +91,6 @@ if __name__ == '__main__':
     while True:
         ret_val, image = cam.read()
 
-        image_org = image.copy()
-
         logger.debug('image process+')
         humans = e.inference(image, resize_to_default=(w > 0 and h > 0), upsample_size=args.resize_out_ratio)
 
@@ -88,7 +98,7 @@ if __name__ == '__main__':
         image_tmp = TfPoseEstimator.draw_humans(image, humans, imgcopy=False, mode=args.mode)
 
         if args.mode == 'anime':
-            image = face_detect(image_org, image_tmp)
+            image = face_detect(image, image_tmp)
 
         logger.debug('show+')
         cv2.putText(image,
