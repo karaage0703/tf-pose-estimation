@@ -418,6 +418,11 @@ class TfPoseEstimator:
 
         centers = {}
         for human in humans:
+            rshoulder_pos = None
+            lshoulder_pos = None
+            rhip_pos = None
+            lhip_pos = None
+
             # draw point
             for i in range(common.CocoPart.Background.value):
                 if i not in human.body_parts.keys():
@@ -435,11 +440,23 @@ class TfPoseEstimator:
                         cv2.circle(npimg, center, 50, human_color, thickness=-1, lineType=8, shift=0)
                     if i == 10 or i == 13: # draw ankle
                         cv2.circle(npimg, center, 60, human_color, thickness=-1, lineType=8, shift=0)
+                    if i == 2: # Store RShoulder position
+                        rshoulder_pos = center
+                    if i == 5: # Store LShoulder position
+                        lshoulder_pos = center
+                    if i == 8: # Store RHip position
+                        rhip_pos = center
+                    if i == 11: # Store LHip position
+                        lhip_pos = center
 
-            # draw line
-            neck_pos = 0
-            rhip_pos = 0
-            lhip_pos = 0
+            # draw body
+            if rshoulder_pos != None and lshoulder_pos != None and rhip_pos != None and lhip_pos != None:
+                body_center_x = (rshoulder_pos[0] + lshoulder_pos[0] + rhip_pos[0] + lhip_pos[0]) / 4
+                body_center_y = (rshoulder_pos[1] + lshoulder_pos[1] + rhip_pos[1] + lhip_pos[1])/ 4
+                body_size_x = ((lhip_pos[0] - rhip_pos[0]) / 2 + (lshoulder_pos[0] - rshoulder_pos[0]) / 2) * 1.5
+                body_size_y = ((rhip_pos[1] + lhip_pos[1]) / 2 - (rshoulder_pos[1] + lshoulder_pos[1]) / 2) * 1.5
+
+                cv2.ellipse(npimg, ((body_center_x, body_center_y), (body_size_x, body_size_y), 0), human_color, thickness=-1, lineType=8)
 
             for pair_order, pair in enumerate(common.CocoPairsRender):
                 if pair[0] not in human.body_parts.keys() or pair[1] not in human.body_parts.keys():
@@ -449,8 +466,6 @@ class TfPoseEstimator:
                     # npimg = cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                     cv2.line(npimg, centers[pair[0]], centers[pair[1]], common.CocoColors[pair_order], 3)
                 if mode == 'anime':
-                    print(pair_order)
-                    print(pair)
                     if pair_order < 13: # under neck
                         cv2.line(npimg, centers[pair[0]], centers[pair[1]], human_color, 50)
                     if pair_order == 6: # neck and right hip
@@ -461,15 +476,6 @@ class TfPoseEstimator:
                         # store body information
                         neck_pos = centers[pair[0]]
                         lhip_pos = centers[pair[1]]
-
-            # draw body
-            if neck_pos != 0 and rhip_pos != 0 and lhip_pos != 0:
-                body_center_x = (neck_pos[0] + rhip_pos[0] + lhip_pos[0]) / 3
-                body_center_y = (neck_pos[1] + (rhip_pos[1] + lhip_pos[1]) / 2) / 2
-                body_size_x = (lhip_pos[0] - rhip_pos[0]) * 1.5
-                body_size_y = ((rhip_pos[1] + lhip_pos[1]) / 2 - neck_pos[1]) * 1.5
-
-                cv2.ellipse(npimg, ((body_center_x, body_center_y), (body_size_x, body_size_y), 0), human_color, thickness=-1, lineType=8)
 
         return npimg
 
