@@ -41,6 +41,40 @@ def _include_part(part_list, part_idx):
     return False, None
 
 
+def face_overlay(image, image_tmp, cascade):
+    # image padding
+    padding_size = int(image.shape[1] / 2)
+    padding_img = cv2.copyMakeBorder(image, padding_size, padding_size , padding_size, padding_size, cv2.BORDER_CONSTANT, value=(0,0,0))
+    image_tmp = cv2.copyMakeBorder(image_tmp, padding_size, padding_size , padding_size, padding_size, cv2.BORDER_CONSTANT, value=(0,0,0))
+    image_tmp = image_tmp.astype('float64')
+
+    # face detect
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    facerect = cascade.detectMultiScale(image_gray, scaleFactor=1.1, minNeighbors=1, minSize=(1, 1))
+
+    # face overlay
+    if len(facerect) > 0:
+        for rect in facerect:
+            face_size = rect[2] * 2
+            face_pos_adjust = int(rect[2] * 0.5)
+            face_img = cv2.imread('./karaage_icon.png', cv2.IMREAD_UNCHANGED)
+            face_img = cv2.resize(face_img, (face_size, face_size))
+            mask = face_img[:,:,3]
+            mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+            mask = mask / 255.0
+            face_img = face_img[:,:,:3]
+
+            image_tmp[rect[1]+padding_size-face_pos_adjust:rect[1]+face_size+padding_size-face_pos_adjust,
+                      rect[0]+padding_size-face_pos_adjust:rect[0]+face_size+padding_size-face_pos_adjust] *= 1 - mask
+            image_tmp[rect[1]+padding_size-face_pos_adjust:rect[1]+face_size+padding_size-face_pos_adjust,
+                      rect[0]+padding_size-face_pos_adjust:rect[0]+face_size+padding_size-face_pos_adjust] += face_img * mask
+
+    image_tmp = image_tmp[padding_size:padding_size+image.shape[0], padding_size:padding_size+image.shape[1]]
+    image_tmp = image_tmp.astype('uint8')
+
+    return image_tmp
+
+
 class Human:
     """
     body_parts: list of BodyPart
@@ -437,7 +471,8 @@ class TfPoseEstimator:
                     cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
                 if mode == 'anime':
                     if i == 4 or i == 7: # draw wrist
-                        cv2.circle(npimg, center, 50, human_color, thickness=-1, lineType=8, shift=0)
+                        #cv2.circle(npimg, center, 50, human_color, thickness=-1, lineType=8, shift=0)
+                        cv2.circle(npimg, center, 500, human_color, thickness=-1, lineType=8, shift=0)
                     if i == 10 or i == 13: # draw ankle
                         cv2.circle(npimg, center, 60, human_color, thickness=-1, lineType=8, shift=0)
                     if i == 2: # Store RShoulder position
@@ -451,12 +486,13 @@ class TfPoseEstimator:
 
             # draw body
             if rshoulder_pos != None and lshoulder_pos != None and rhip_pos != None and lhip_pos != None:
-                body_center_x = (rshoulder_pos[0] + lshoulder_pos[0] + rhip_pos[0] + lhip_pos[0]) / 4
-                body_center_y = (rshoulder_pos[1] + lshoulder_pos[1] + rhip_pos[1] + lhip_pos[1])/ 4
-                body_size_x = ((lhip_pos[0] - rhip_pos[0]) / 2 + (lshoulder_pos[0] - rshoulder_pos[0]) / 2) * 1.5
-                body_size_y = ((rhip_pos[1] + lhip_pos[1]) / 2 - (rshoulder_pos[1] + lshoulder_pos[1]) / 2) * 1.5
+                body_center = ((rshoulder_pos[0] + lshoulder_pos[0] + rhip_pos[0] + lhip_pos[0]) / 4,
+                               (rshoulder_pos[1] + lshoulder_pos[1] + rhip_pos[1] + lhip_pos[1])/ 4)
 
-                cv2.ellipse(npimg, ((body_center_x, body_center_y), (body_size_x, body_size_y), 0), human_color, thickness=-1, lineType=8)
+                body_size = (((lhip_pos[0] - rhip_pos[0]) / 2 + (lshoulder_pos[0] - rshoulder_pos[0]) / 2) * 1.5,
+                             ((rhip_pos[1] + lhip_pos[1]) / 2 - (rshoulder_pos[1] + lshoulder_pos[1]) / 2) * 1.5)
+
+                cv2.ellipse(npimg, ((body_center), (body_size), 0), human_color, thickness=-1, lineType=8)
 
             for pair_order, pair in enumerate(common.CocoPairsRender):
                 if pair[0] not in human.body_parts.keys() or pair[1] not in human.body_parts.keys():
@@ -468,14 +504,6 @@ class TfPoseEstimator:
                 if mode == 'anime':
                     if pair_order < 13: # under neck
                         cv2.line(npimg, centers[pair[0]], centers[pair[1]], human_color, 50)
-                    if pair_order == 6: # neck and right hip
-                        # store body information
-                        neck_pos = centers[pair[0]]
-                        rhip_pos = centers[pair[1]]
-                    if pair_order == 9: # neck and left hip
-                        # store body information
-                        neck_pos = centers[pair[0]]
-                        lhip_pos = centers[pair[1]]
 
         return npimg
 

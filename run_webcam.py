@@ -6,9 +6,9 @@ import cv2
 import numpy as np
 
 from tf_pose.estimator import TfPoseEstimator
+from tf_pose.estimator import face_overlay
 from tf_pose.networks import get_graph_path, model_wh
 
-cascade_path = './haarcascade_frontalface_alt.xml'
 
 logger = logging.getLogger('TfPoseEstimator-WebCam')
 logger.setLevel(logging.DEBUG)
@@ -23,40 +23,6 @@ fps_time = 0
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
 
-
-def face_detect(image, image_tmp):
-    # image padding
-    padding_size = int(image.shape[1] / 2)
-    padding_img = cv2.copyMakeBorder(image, padding_size, padding_size , padding_size, padding_size, cv2.BORDER_CONSTANT, value=(0,0,0))
-    image_tmp = cv2.copyMakeBorder(image_tmp, padding_size, padding_size , padding_size, padding_size, cv2.BORDER_CONSTANT, value=(0,0,0))
-    image_tmp = image_tmp.astype('float64')
-
-    # face detect
-    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    cascade = cv2.CascadeClassifier(cascade_path)
-    facerect = cascade.detectMultiScale(image_gray, scaleFactor=1.1, minNeighbors=1, minSize=(1, 1))
-
-    # face overlay
-    if len(facerect) > 0:
-        for rect in facerect:
-            face_size = rect[2] * 2
-            face_pos_adjust = int(rect[2] * 0.5)
-            face_img = cv2.imread('./karaage_icon.png', cv2.IMREAD_UNCHANGED)
-            face_img = cv2.resize(face_img, (face_size, face_size))
-            mask = face_img[:,:,3]
-            mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-            mask = mask / 255.0
-            face_img = face_img[:,:,:3]
-
-            image_tmp[rect[1]+padding_size-face_pos_adjust:rect[1]+face_size+padding_size-face_pos_adjust,
-                      rect[0]+padding_size-face_pos_adjust:rect[0]+face_size+padding_size-face_pos_adjust] *= 1 - mask
-            image_tmp[rect[1]+padding_size-face_pos_adjust:rect[1]+face_size+padding_size-face_pos_adjust,
-                      rect[0]+padding_size-face_pos_adjust:rect[0]+face_size+padding_size-face_pos_adjust] += face_img * mask
-
-    image_tmp = image_tmp[padding_size:padding_size+image.shape[0], padding_size:padding_size+image.shape[1]]
-    image_tmp = image_tmp.astype('uint8')
-
-    return image_tmp
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='tf-pose-estimation realtime webcam')
@@ -88,6 +54,9 @@ if __name__ == '__main__':
     ret_val, image = cam.read()
     logger.info('cam image=%dx%d' % (image.shape[1], image.shape[0]))
 
+    cascade_path = './haarcascade_frontalface_alt.xml'
+    cascade = cv2.CascadeClassifier(cascade_path)
+
     while True:
         ret_val, image = cam.read()
 
@@ -98,7 +67,7 @@ if __name__ == '__main__':
         image_tmp = TfPoseEstimator.draw_humans(image, humans, imgcopy=False, mode=args.mode)
 
         if args.mode == 'anime':
-            image = face_detect(image, image_tmp)
+            image = face_overlay(image, image_tmp, cascade)
 
         logger.debug('show+')
         cv2.putText(image,
