@@ -471,8 +471,7 @@ class TfPoseEstimator:
                     cv2.circle(npimg, center, 3, common.CocoColors[i], thickness=3, lineType=8, shift=0)
                 if mode == 'anime':
                     if i == 4 or i == 7: # draw wrist
-                        #cv2.circle(npimg, center, 50, human_color, thickness=-1, lineType=8, shift=0)
-                        cv2.circle(npimg, center, 500, human_color, thickness=-1, lineType=8, shift=0)
+                        cv2.circle(npimg, center, 50, human_color, thickness=-1, lineType=8, shift=0)
                     if i == 10 or i == 13: # draw ankle
                         cv2.circle(npimg, center, 60, human_color, thickness=-1, lineType=8, shift=0)
                     if i == 2: # Store RShoulder position
