@@ -149,3 +149,8 @@ See : [etcs/training.md](./etcs/training.md)
 ## References
 
 See : [etcs/reference.md](./etcs/reference.md)
+
+## License
+This software is released under the Apache License 2.0 except for `karaage_icon.png` , see LICENSE 
+
+NOT USE `karaage_icon.png` for commercial use (hobby use is OK).
