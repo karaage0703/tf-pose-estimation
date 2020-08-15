@@ -1,34 +1,34 @@
-# Jetson Nano
+# Raspberry Pi
 ## Pose Estimation with Jetson Nano
 
 ![open_pose_jetson_nano](/images_jetson/openpose.gif)
 
 ### Hardware
-- Jetson nano
+- Raspberry Pi 4
 - Raspi Cam V2 or USB Web Cam
 
 ### Setup
 Execute following commands for installing TensorFlow and tf-pose-estimation:
 
 ```sh
-$ git clone https://github.com/karaage0703/jetson-nano-tools
-$ cd jetson-nano-tools
-$ ./install-tensorflow.sh
-$ ./install-pose-estimation.sh
+$ git clone https://github.com/karaage0703/raspberry-pi-setup
+$ cd raspberry-pi-setup
+$ ./setup-tensorflow-raspbian-buster.sh
+$ ./setup-opencv-raspbian-buster.sh
+$ ./setup-pose-estimation.sh
 ```
+
+
 ### How to use
 With Raspi Cam V2
 
-```
-$ cd ~/tf-pose-estimation
-$ python3 run_jetson_nano.py --model=mobilenet_v2_small --resize=320x176
-```
+t.b.d.
 
 With USB Web Cam
 
 ```sh
 $ cd ~/tf-pose-estimation
-$ python3 run_webcam.py --model=mobilenet_v2_small --resize=320x176 --camera=1
+$ python3 run_webcam.py --model='frozen-model.pb' --resize=432x368 --camera=1
 ```
 
 ## Skeleton Sequencer with Jetson Nano

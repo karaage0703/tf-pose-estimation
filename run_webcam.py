@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 from tf_pose.estimator import TfPoseEstimator
-from tf_pose.networks import get_graph_path, model_wh
+# from tf_pose.networks import get_graph_path, model_wh
 
 logger = logging.getLogger('TfPoseEstimator-WebCam')
 logger.setLevel(logging.DEBUG)
@@ -17,6 +17,12 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 fps_time = 0
+
+def model_wh(resolution_str):
+    width, height = map(int, resolution_str.split('x'))
+    if width % 16 != 0 or height % 16 != 0:
+        raise Exception('Width and height should be multiples of 16. w=%d, h=%d' % (width, height))
+    return int(width), int(height)
 
 
 if __name__ == '__main__':
@@ -33,12 +39,12 @@ if __name__ == '__main__':
                         help='for debug purpose, if enabled, speed for inference is dropped.')
     args = parser.parse_args()
 
-    logger.debug('initialization %s : %s' % (args.model, get_graph_path(args.model)))
+    # logger.debug('initialization %s : %s' % (args.model, args.model))
     w, h = model_wh(args.resize)
     if w > 0 and h > 0:
-        e = TfPoseEstimator(get_graph_path(args.model), target_size=(w, h))
+        e = TfPoseEstimator(args.model, target_size=(w, h))
     else:
-        e = TfPoseEstimator(get_graph_path(args.model), target_size=(432, 368))
+        e = TfPoseEstimator(args.model, target_size=(432, 368))
     logger.debug('cam read+')
     cam = cv2.VideoCapture(args.camera)
     ret_val, image = cam.read()
