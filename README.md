@@ -1,3 +1,72 @@
+# Jetson Nano
+## Pose Estimation with Jetson Nano
+
+![open_pose_jetson_nano](https://raw.githubusercontent.com/karaage0703/tf-pose-estimation/jetson_nano/images_jetson/openpose.gif)
+
+### Hardware
+- Jetson Nano(JetPack v4.5)
+- Raspi Cam V2 or USB Web Cam
+
+### Setup
+Execute following commands for installing TensorFlow and tf-pose-estimation:
+
+```sh
+$ git clone https://github.com/karaage0703/jetson-nano-tools
+$ cd jetson-nano-tools
+$ ./install-tensorflow-v45.sh
+$ ./install-pose-estimation-v45.sh
+```
+### How to use
+With Raspi Cam V2
+
+```
+$ cd ~/tf-pose-estimation
+$ python3 run_jetson_nano.py --model=mobilenet_v2_small --resize=320x176
+```
+
+With USB Web Cam
+
+```sh
+$ cd ~/tf-pose-estimation
+$ python3 run_webcam.py --model=mobilenet_v2_small --resize=320x176 --camera=0
+```
+
+## Skeleton Sequencer with Jetson Nano
+
+![skeleton_sequencer_02](https://raw.githubusercontent.com/karaage0703/tf-pose-estimation/jetson_nano/images_jetson/ss_00.jpg)
+
+![skeleton_sequencer_01](https://raw.githubusercontent.com/karaage0703/tf-pose-estimation/jetson_nano/images_jetson/ss_01.jpg)
+
+### Hardware
+- Jetson Nano(JetPack v4.5)
+- Raspi Cam V2
+- Pocket Miku (as MIDI Device)
+
+### Setup
+For setup Sekeleton Sequencer needs 2 steps.
+
+1. Kernel build
+1. Install pygame
+
+#### Kernel Build for MIDI
+
+https://qiita.com/karaage0703/items/9bef6aeec9ad24f647c6
+
+
+#### Install pygame
+
+https://qiita.com/karaage0703/items/5d43309bc688858e7c2a
+
+
+### How to use
+Execute following commands:
+
+```sh
+$ cd ~/tf-pose-estimation
+$ python3 skeleton_sequencer.py -d=jetson_nano_raspi_cam --model=mobilenet_v2_small 
+```
+
+
 # tf-pose-estimation
 
 'Openpose', human pose estimation algorithm, have been implemented using Tensorflow. It also provides several variants that have some changes to the network structure for **real-time processing on the CPU or low-power embedded devices.**
